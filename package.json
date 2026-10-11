@@ -1,0 +1,29 @@
+{
+  "name": "fettle",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Fettle: a personal health companion for food, activity, body, sleep, mind and habits.",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "db:setup": "node scripts/db-setup.mjs",
+    "dev": "npm run setup && node scripts/run.mjs dev",
+    "dev:api": "npm run setup && node scripts/run.mjs api",
+    "build": "npm run build -w @fettle/web",
+    "start": "npm run setup && npm run build && node scripts/run.mjs start",
+    "db:generate": "npm run db:generate -w @fettle/api",
+    "db:migrate": "npm run db:migrate -w @fettle/api",
+    "db:demo": "npm run db:demo -w @fettle/api --",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2"
+  }
+}
