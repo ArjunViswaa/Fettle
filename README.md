@@ -30,7 +30,7 @@ anything, mobile bottom sheet dialogs, reduced-motion support.
 ## Stack
 
 - **Monorepo** with npm workspaces: `apps/api`, `apps/web`, `packages/shared`
-- **API:** Fastify 5, Drizzle ORM, PostgreSQL (`pg_trgm` for fuzzy search), Better Auth (argon2id), Zod validation
+- **API:** Fastify 5, Drizzle ORM, PostgreSQL (built in via `embedded-postgres`, `pg_trgm` for fuzzy search), Better Auth (argon2id), Zod validation
 - **Web:** React 19, Vite, TanStack Router + Query, Tailwind CSS v4, Motion, ECharts
 - **Shared:** Zod schemas, types and the health maths (BMR/TDEE, targets, weight trend, score, streaks), unit-tested with Vitest
 
@@ -46,16 +46,32 @@ anything, mobile bottom sheet dialogs, reduced-motion support.
 
 ## Getting started
 
-Requirements: Node 22.12+, PostgreSQL 14+ running locally (tested with 17).
+Requirements: Node 22.12+. Nothing else: Fettle runs its own PostgreSQL server inside the project
+(data in `.data/postgres`, git-ignored), started and stopped together with the app.
 
 ```bash
 npm install
-npm run db:setup   # once: asks for your postgres superuser password, creates a `fettle` role + database
-npm run dev        # API on :4100, web on http://localhost:5174
+npm run dev        # database on :54330, API on :4100, web on http://localhost:5174
 ```
 
-`db:setup` never stores the superuser password. It creates a dedicated `fettle` login with a random
-password and writes the connection string to `.env` (git-ignored).
+The first run creates `.env` with a random auth secret and database password.
+
+### Looking inside the database (DBeaver, pgAdmin, psql)
+
+While Fettle is running, connect with:
+
+| Setting | Value |
+| --- | --- |
+| Host | `localhost` |
+| Port | `54330` (`EMBEDDED_PG_PORT` in `.env`) |
+| Database | `fettle` |
+| Username | `postgres` |
+| Password | the `EMBEDDED_PG_PASSWORD` value in `.env` |
+
+### Using another PostgreSQL server instead
+
+Set `DATABASE_URL` in `.env` and the built-in server stays idle. `npm run db:setup` can create a
+dedicated `fettle` role and database on a server you have the superuser password for.
 
 Other commands:
 
@@ -72,7 +88,7 @@ To use Fettle from your phone on the same Wi-Fi, set `API_HOST=0.0.0.0` and
 
 ## Privacy
 
-Your health data lives only in the local database. `.env`, exports, dumps and backups are all in
+Your health data lives only in the local database (`.data/postgres`). `.env`, `.data/`, exports, dumps and backups are all in
 `.gitignore`, so nothing personal ends up in the repository. Use **Settings → Export** for a full
 JSON copy, and **Delete account** to erase everything.
 

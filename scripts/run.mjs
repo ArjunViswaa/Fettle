@@ -1,13 +1,16 @@
 /**
  * Starts Fettle's processes together with prefixed, coloured output.
  *
- *   node scripts/run.mjs dev     API (watch) + web (Vite)
- *   node scripts/run.mjs api     API (watch)
- *   node scripts/run.mjs start   API serving the built web app
+ *   node scripts/run.mjs dev     database + API (watch) + web (Vite)
+ *   node scripts/run.mjs api     database + API (watch)
+ *   node scripts/run.mjs start   database + API serving the built web app
+ *
+ * "database" is Fettle's own PostgreSQL; it just idles when DATABASE_URL points elsewhere.
  *
  * Why not `concurrently`: on Windows, force-killing the top-level process leaves its children
  * running and holding ports. This launcher writes a heartbeat file every 2s; each child watches it
- * (apps/api/src/lib/watchdog.ts and the Vite plugin) and shuts itself down once it stops.
+ * (apps/api/src/lib/watchdog.ts and the Vite plugin) and shuts itself down cleanly once it stops,
+ * database included.
  */
 import { spawn } from 'node:child_process';
 import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -18,11 +21,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const heartbeat = path.join(root, '.data', 'launcher.heartbeat');
 
 const TASKS = {
+  db: { cmd: 'npm run db -w @fettle/api', color: 90 },
   api: { cmd: 'npm run dev -w @fettle/api', color: 36, env: { FETTLE_STOP_PARENT: '1' } },
   'api-prod': { cmd: 'npm run start -w @fettle/api', color: 36, label: 'api' },
   web: { cmd: 'npm run dev -w @fettle/web', color: 35 },
 };
-const MODES = { dev: ['api', 'web'], api: ['api'], start: ['api-prod'] };
+const MODES = { dev: ['db', 'api', 'web'], api: ['db', 'api'], start: ['db', 'api-prod'] };
 
 const mode = process.argv[2] ?? 'dev';
 const names = MODES[mode];

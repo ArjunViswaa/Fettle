@@ -11,7 +11,14 @@ if (existsSync(envFile)) loadDotenv({ path: envFile, quiet: true });
 
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is not set. Run `npm run db:setup` to create the database on your local PostgreSQL.'),
+  /** Leave unset to use the PostgreSQL server that Fettle runs itself (data in .data/postgres). */
+  DATABASE_URL: z
+    .string()
+    .optional()
+    .transform((v) => v || undefined),
+  EMBEDDED_PG_PORT: z.coerce.number().int().default(54330),
+  EMBEDDED_PG_PASSWORD: z.string().default('fettle-local'),
+  EMBEDDED_PG_DIR: z.string().default(path.join(repoRoot, '.data', 'postgres')),
   DB_POOL_SIZE: z.coerce.number().int().min(1).max(100).default(10),
   API_PORT: z.coerce.number().int().default(4100),
   API_HOST: z.string().default('127.0.0.1'),
@@ -36,4 +43,8 @@ export const env = {
   APP_URL:
     parsed.data.APP_URL ??
     (parsed.data.NODE_ENV === 'production' ? `http://localhost:${parsed.data.API_PORT}` : 'http://localhost:5174'),
+  DATABASE_URL:
+    parsed.data.DATABASE_URL ??
+    `postgres://postgres:${encodeURIComponent(parsed.data.EMBEDDED_PG_PASSWORD)}@127.0.0.1:${parsed.data.EMBEDDED_PG_PORT}/fettle`,
+  usingEmbeddedDb: !parsed.data.DATABASE_URL,
 };

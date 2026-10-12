@@ -1,19 +1,23 @@
-// Creates .env with a fresh auth secret on first run, so `npm run dev` works straight after cloning.
+// Makes sure .env exists and has its secrets, so `npm run dev` works straight after cloning.
+// Generated values are only added when missing; anything already in .env is kept as it is.
 import { randomBytes } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 
 const envPath = new URL('../.env', import.meta.url);
 const examplePath = new URL('../.env.example', import.meta.url);
 
-if (!existsSync(envPath)) {
-  const secret = randomBytes(32).toString('base64url');
-  const contents = readFileSync(examplePath, 'utf8').replace(/^BETTER_AUTH_SECRET=.*$/m, `BETTER_AUTH_SECRET=${secret}`);
-  writeFileSync(envPath, contents);
-  console.log('Created .env with a new BETTER_AUTH_SECRET.');
-}
+let env = existsSync(envPath) ? readFileSync(envPath, 'utf8') : readFileSync(examplePath, 'utf8');
+const before = env;
 
-const env = readFileSync(envPath, 'utf8');
-if (!/^DATABASE_URL=\S+/m.test(env)) {
-  console.error('\nFettle needs a database. Run this once to create it on your local PostgreSQL:\n\n  npm run db:setup\n');
-  process.exit(1);
-}
+const ensure = (key, value) => {
+  const line = new RegExp(`^#?\\s*${key}=.*$`, 'm');
+  if (new RegExp(`^${key}=\\S+`, 'm').test(env)) return;
+  env = line.test(env) ? env.replace(line, `${key}=${value}`) : `${env.trimEnd()}\n${key}=${value}\n`;
+  console.log(`Added ${key} to .env`);
+};
+
+ensure('BETTER_AUTH_SECRET', randomBytes(32).toString('base64url'));
+// Hex keeps it easy to paste into database tools like DBeaver.
+ensure('EMBEDDED_PG_PASSWORD', randomBytes(12).toString('hex'));
+
+if (env !== before || !existsSync(envPath)) writeFileSync(envPath, env);
