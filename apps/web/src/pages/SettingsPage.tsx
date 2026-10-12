@@ -36,6 +36,7 @@ export function SettingsPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <ProfileCard profile={profile} name={me.name} key={profile.unitSystem} />
         <TargetsCard profile={profile} />
+        <PasswordCard />
         <DataCard email={me.email} />
       </div>
     </div>
@@ -196,6 +197,56 @@ function TargetsCard({ profile }: { profile: Profile }) {
   );
 }
 
+function PasswordCard() {
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [repeat, setRepeat] = useState('');
+  const [busy, setBusy] = useState(false);
+  const mismatch = repeat.length > 0 && next !== repeat;
+
+  const change = async () => {
+    setBusy(true);
+    // Signs out every other browser or phone, so an old password can't keep a session alive.
+    const { error } = await authClient.changePassword({ currentPassword: current, newPassword: next, revokeOtherSessions: true });
+    setBusy(false);
+    if (error) {
+      toast.error(error.message ?? 'Could not change the password');
+      return;
+    }
+    setCurrent('');
+    setNext('');
+    setRepeat('');
+    toast.success('Password changed');
+  };
+
+  return (
+    <Card title="Password" subtitle="Other devices are signed out when you change it">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          change();
+        }}
+        className="space-y-3"
+      >
+        <Field label="Current password">
+          <Input type="password" autoComplete="current-password" required value={current} onChange={(e) => setCurrent(e.target.value)} />
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="New password" hint="At least 8 characters">
+            <Input type="password" autoComplete="new-password" required minLength={8} value={next} onChange={(e) => setNext(e.target.value)} />
+          </Field>
+          <Field label="Repeat new password" error={mismatch ? 'Passwords do not match' : undefined}>
+            <Input type="password" autoComplete="new-password" required minLength={8} value={repeat} onChange={(e) => setRepeat(e.target.value)} />
+          </Field>
+        </div>
+        <Button type="submit" variant="primary" loading={busy} disabled={mismatch || !next}>
+          Change password
+        </Button>
+      </form>
+    </Card>
+  );
+}
+
 function DataCard({ email }: { email: string }) {
   const navigate = useNavigate();
   const [confirm, setConfirm] = useState(false);
@@ -215,7 +266,7 @@ function DataCard({ email }: { email: string }) {
   };
 
   return (
-    <Card className="lg:col-span-2" title="Your data">
+    <Card title="Your data">
       <div className="flex items-start gap-3 rounded-2xl bg-surface-2/70 p-4 text-sm text-ink-2">
         <ShieldCheck className="mt-0.5 size-5 shrink-0 text-good" />
         <p>
