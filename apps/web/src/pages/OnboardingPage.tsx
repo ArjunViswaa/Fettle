@@ -1,7 +1,7 @@
 import { useNavigate } from '@tanstack/react-router';
 import { AnimatePresence, motion } from 'motion/react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import {
   ACTIVITY_INFO,
@@ -59,7 +59,12 @@ export function OnboardingPage() {
     [sex, weightKg, heightCm, age, activity, goal, rate],
   );
 
+  // Ignore clicks while a step is still sliding out, so a double-click can't skip a step.
+  const sliding = useRef(false);
   const go = (delta: number) => {
+    if (sliding.current) return;
+    sliding.current = true;
+    setTimeout(() => (sliding.current = false), 350);
     setDirection(delta);
     setStep((s) => Math.min(STEPS.length - 1, Math.max(0, s + delta)));
     if (step + delta === STEPS.length - 1) setTimeout(celebrate, 450);

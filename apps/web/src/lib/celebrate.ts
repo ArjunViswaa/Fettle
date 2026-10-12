@@ -1,4 +1,7 @@
-import confetti from 'canvas-confetti';
+import confettiLib from 'canvas-confetti';
+
+// Our own instance: the library's default one draws in a worker and throws on window resize.
+const confetti = confettiLib.create(undefined, { resize: true, useWorker: false });
 
 const COLORS = ['#a3e635', '#2dd4bf', '#38bdf8', '#fbbf24', '#f472b6'];
 

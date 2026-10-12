@@ -31,7 +31,7 @@ export function ScoreGauge({ score, size = 200 }: { score: number; size?: number
           strokeWidth={stroke}
           strokeLinecap="round"
           initial={{ pathLength: reduced ? score / 100 : 0 }}
-          animate={{ pathLength: Math.max(score / 100, 0.001) }}
+          animate={{ pathLength: Math.max(score / 100, 0.001), opacity: score > 0 ? 1 : 0 }}
           transition={{ duration: reduced ? 0 : 1.6, ease: [0.16, 1, 0.3, 1] }}
         />
       </svg>
