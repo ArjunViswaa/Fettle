@@ -56,6 +56,16 @@ npm run dev        # database on :54330, API on :4100, web on http://localhost:5
 
 The first run creates `.env` with a random auth secret and database password.
 
+### Desktop shortcut (Windows)
+
+```bash
+npm run shortcut
+```
+
+This puts a **Fettle** icon on your desktop. Double-clicking it starts the database and server
+(in a minimised window: close it to stop Fettle) and opens http://localhost:4100. If Fettle is
+already running, it just opens the browser.
+
 ### Looking inside the database (DBeaver, pgAdmin, psql)
 
 While Fettle is running, connect with:

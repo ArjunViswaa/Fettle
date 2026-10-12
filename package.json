@@ -17,6 +17,8 @@
     "dev:api": "npm run setup && node scripts/run.mjs api",
     "build": "npm run build -w @fettle/web",
     "start": "npm run setup && npm run build && node scripts/run.mjs start",
+    "launch": "node scripts/launch.mjs",
+    "shortcut": "node scripts/desktop-shortcut.mjs",
     "db:generate": "npm run db:generate -w @fettle/api",
     "db:migrate": "npm run db:migrate -w @fettle/api",
     "db:demo": "npm run db:demo -w @fettle/api --",
